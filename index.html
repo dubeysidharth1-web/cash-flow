@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cash-Flow | Premium Personal Salary & Expense Tracker</title>
+  <!-- Modern Geometric Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome for Premium Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Tailwind Configuration -->
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#f5f3ff',
+              100: '#eedeff',
+              200: '#c7d2fe',
+              500: '#6366f1', /* Indigo */
+              600: '#4f46e5', /* Indigo Hover */
+              700: '#4338ca',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Branded glassmorphism utilities -->
+  <style>
+    .glass-panel {
+      background: rgba(255, 255, 255, 0.45);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+    }
+    .dark .glass-panel {
+      background: rgba(15, 23, 42, 0.45);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .main-bg {
+      background: radial-gradient(circle at top left, rgba(99, 102, 241, 0.08), transparent 40%),
+                  radial-gradient(circle at bottom right, rgba(168, 85, 247, 0.08), transparent 40%);
+    }
+    .dark .main-bg {
+      background: radial-gradient(circle at top left, rgba(99, 102, 241, 0.15), transparent 40%),
+                  radial-gradient(circle at bottom right, rgba(168, 85, 247, 0.15), transparent 40%);
+    }
+  </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans transition-colors duration-300 antialiased overflow-x-hidden min-h-screen main-bg pb-12">
+
+  <!-- Threshold Alert Banner (Hidden by default, triggered dynamically by JS) -->
+  <div id="threshold-alert-banner" class="hidden fixed top-24 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-2xl px-6 py-4 rounded-xl border border-red-500/30 bg-red-50/90 dark:bg-red-950/85 backdrop-blur-md shadow-2xl flex items-center gap-4 animate-bounce">
+    <div class="h-10 w-10 rounded-full flex items-center justify-center bg-red-500/10 dark:bg-red-500/20 text-red-600 dark:text-red-400">
+      <i class="fa-solid fa-triangle-exclamation text-lg"></i>
+    </div>
+    <div class="flex-grow">
+      <h4 class="font-bold text-red-900 dark:text-red-100 text-sm">Critical Warning: Budget Exhaustion!</h4>
+      <p class="text-xs text-red-700 dark:text-red-300">Remaining Balance has dropped below 10% of your Total Salary. Please curtail expenses.</p>
+    </div>
+    <button onclick="document.getElementById('threshold-alert-banner').classList.add('hidden')" class="text-red-900 dark:text-red-100 hover:scale-115 transition-transform" aria-label="Dismiss alert">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+  </div>
+
+  <!-- Header / Navigation -->
+  <header class="sticky top-0 z-40 w-full border-b border-slate-200/50 dark:border-slate-800/50 bg-white/70 dark:bg-slate-950/70 backdrop-blur-md transition-all duration-300">
+    <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+      
+      <!-- Brand Logo -->
+      <a href="#" class="text-2xl font-extrabold tracking-tight flex items-center gap-2">
+        <div class="h-10 w-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center text-white shadow-lg shadow-indigo-500/20">
+          <i class="fa-solid fa-wallet"></i>
+        </div>
+        Cash<span class="text-indigo-500 dark:text-indigo-400">Flow</span>
+      </a>
+
+      <!-- Right Side Controls -->
+      <div class="flex items-center gap-4">
+        <!-- Currency Dropdown Selector -->
+        <div class="relative">
+          <select id="currency-select" class="appearance-none pl-10 pr-8 py-2 text-sm font-semibold rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all duration-200 text-slate-700 dark:text-slate-300">
+            <option value="INR">INR (₹)</option>
+            <option value="USD">USD ($)</option>
+            <option value="EUR">EUR (€)</option>
+          </select>
+          <div class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400">
+            <i class="fa-solid fa-globe text-xs"></i>
+          </div>
+          <div class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+            <i class="fa-solid fa-chevron-down text-[10px]"></i>
+          </div>
+        </div>
+
+        <!-- Dark/Light Theme Toggle -->
+        <button id="theme-toggle" class="h-10 w-10 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center justify-center bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:scale-105 active:scale-95 transition-all duration-300" aria-label="Toggle Theme">
+          <i class="fa-solid fa-moon block dark:hidden text-lg"></i>
+          <i class="fa-solid fa-sun hidden dark:block text-lg"></i>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-7xl mx-auto px-6 mt-8">
+    
+    <!-- Real-time Stats Cards Grid -->
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      
+      <!-- Income Stat Card -->
+      <div class="glass-panel rounded-2xl p-6 shadow-sm hover:shadow-md transition-all duration-300 relative group overflow-hidden">
+        <div class="absolute -right-4 -bottom-4 text-indigo-500/5 text-7xl transition-transform duration-500 group-hover:scale-110">
+          <i class="fa-solid fa-money-bill-trend-up"></i>
+        </div>
+        <div class="flex items-center justify-between mb-4">
+          <span class="text-xs font-bold uppercase tracking-wider text-indigo-500 dark:text-indigo-400">Total Salary</span>
+          <div class="h-8 w-8 rounded-lg bg-indigo-500/10 text-indigo-500 dark:text-indigo-400 flex items-center justify-center">
+            <i class="fa-solid fa-wallet text-sm"></i>
+          </div>
+        </div>
+        <div class="flex items-baseline gap-2">
+          <h2 id="total-salary-val" class="text-3xl font-extrabold text-slate-900 dark:text-white">0.00</h2>
+          <span class="currency-label text-slate-500 font-bold text-sm">INR</span>
+        </div>
+        <div class="mt-4 flex items-center justify-between">
+          <p class="text-xs text-slate-500">Source of income</p>
+          <button id="edit-salary-btn" class="text-xs font-bold text-indigo-500 hover:text-indigo-600 transition-colors flex items-center gap-1">
+            <i class="fa-solid fa-pen-to-square"></i> Edit
+          </button>
+        </div>
+      </div>
+
+      <!-- Expense Stat Card -->
+      <div class="glass-panel rounded-2xl p-6 shadow-sm hover:shadow-md transition-all duration-300 relative group overflow-hidden">
+        <div class="absolute -right-4 -bottom-4 text-purple-500/5 text-7xl transition-transform duration-500 group-hover:scale-110">
+          <i class="fa-solid fa-cart-shopping"></i>
+        </div>
+        <div class="flex items-center justify-between mb-4">
+          <span class="text-xs font-bold uppercase tracking-wider text-purple-500 dark:text-purple-400">Total Expenses</span>
+          <div class="h-8 w-8 rounded-lg bg-purple-500/10 text-purple-500 dark:text-purple-400 flex items-center justify-center">
+            <i class="fa-solid fa-circle-minus text-sm"></i>
+          </div>
+        </div>
+        <div class="flex items-baseline gap-2">
+          <h2 id="total-expenses-val" class="text-3xl font-extrabold text-slate-900 dark:text-white">0.00</h2>
+          <span class="currency-label text-slate-500 font-bold text-sm">INR</span>
+        </div>
+        <div class="mt-4">
+          <p class="text-xs text-slate-500" id="total-expenses-subtitle">0 log entries recorded</p>
+        </div>
+      </div>
+
+      <!-- Remaining Balance Stat Card (Changes state/color on warning threshold) -->
+      <div id="balance-card" class="glass-panel rounded-2xl p-6 shadow-sm hover:shadow-md transition-all duration-300 relative group overflow-hidden border border-emerald-500/10">
+        <div class="absolute -right-4 -bottom-4 text-emerald-500/5 text-7xl transition-transform duration-500 group-hover:scale-110">
+          <i class="fa-solid fa-scale-balanced"></i>
+        </div>
+        <div class="flex items-center justify-between mb-4">
+          <span id="balance-tag" class="text-xs font-bold uppercase tracking-wider text-emerald-500 dark:text-emerald-400">Remaining Balance</span>
+          <div id="balance-icon-container" class="h-8 w-8 rounded-lg bg-emerald-500/10 text-emerald-500 dark:text-emerald-400 flex items-center justify-center transition-all duration-300">
+            <i class="fa-solid fa-scale-balanced text-sm"></i>
+          </div>
+        </div>
+        <div class="flex items-baseline gap-2">
+          <h2 id="remaining-balance-val" class="text-3xl font-extrabold text-slate-900 dark:text-white transition-colors duration-300">0.00</h2>
+          <span class="currency-label text-slate-500 font-bold text-sm">INR</span>
+        </div>
+        <div class="mt-4 flex items-center justify-between">
+          <p id="balance-percentage-desc" class="text-xs text-slate-500">100% of income remaining</p>
+          <span id="threshold-pill" class="hidden text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-100 text-red-600 dark:bg-red-950/80 dark:text-red-400 border border-red-500/20">LOW BUDGET</span>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Main Content Panels Dashboard Layout -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      
+      <!-- COLUMN 1: LEFT SIDEBAR FOR INPUT FORMS (Span 4) -->
+      <div class="lg:col-span-4 flex flex-col gap-6">
+        
+        <!-- Salary Setup Form (Shown if salary not initialized) -->
+        <div id="salary-setup-panel" class="glass-panel rounded-2xl p-6 shadow-sm border border-slate-200/50 dark:border-slate-800/50 transition-all duration-300">
+          <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
+            <i class="fa-solid fa-circle-info text-indigo-500"></i> Setup Salary
+          </h3>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mb-6">Initialize your monthly income to activate balance and chart calculations.</p>
+          
+          <form id="salary-form" novalidate>
+            <div class="mb-4">
+              <label for="salary-input" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Monthly Income Amount</label>
+              <div class="relative">
+                <input type="number" id="salary-input" class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all duration-200 text-sm font-semibold" placeholder="e.g. 50000" min="1" required>
+                <div class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
+                  <i class="fa-solid fa-wallet"></i>
+                </div>
+              </div>
+              <p id="salary-error" class="hidden text-xs text-red-500 mt-1.5 flex items-center gap-1">
+                <i class="fa-solid fa-circle-exclamation"></i> Income must be a positive number.
+              </p>
+            </div>
+            <button type="submit" class="w-full py-3 text-sm font-bold text-white bg-indigo-500 hover:bg-indigo-600 active:scale-[0.98] rounded-xl shadow-lg shadow-indigo-500/20 transition-all duration-200">
+              Set Income
+            </button>
+          </form>
+        </div>
+
+        <!-- Expense Input Form -->
+        <div class="glass-panel rounded-2xl p-6 shadow-sm border border-slate-200/50 dark:border-slate-800/50 transition-all duration-300">
+          <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
+            <i class="fa-solid fa-circle-plus text-indigo-500"></i> Log Expense
+          </h3>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mb-6">Input individual expenditure logs. Values will scale relative to selected currencies.</p>
+
+          <form id="expense-form" novalidate>
+            <!-- Expense Name -->
+            <div class="mb-4">
+              <label for="expense-name" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Expense Item Name</label>
+              <div class="relative">
+                <input type="text" id="expense-name" class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all duration-200 text-sm font-semibold" placeholder="e.g. Grocery Store" required>
+                <div class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
+                  <i class="fa-solid fa-cart-shopping"></i>
+                </div>
+              </div>
+              <p id="expense-name-error" class="hidden text-xs text-red-500 mt-1.5 flex items-center gap-1">
+                <i class="fa-solid fa-circle-exclamation"></i> Expense name cannot be blank.
+              </p>
+            </div>
+
+            <!-- Expense Amount -->
+            <div class="mb-4">
+              <label for="expense-amount" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Expenditure Cost</label>
+              <div class="relative">
+                <input type="number" id="expense-amount" class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all duration-200 text-sm font-semibold" placeholder="e.g. 1500" min="0.01" required>
+                <div class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
+                  <i class="fa-solid fa-tag"></i>
+                </div>
+              </div>
+              <p id="expense-amount-error" class="hidden text-xs text-red-500 mt-1.5 flex items-center gap-1">
+                <i class="fa-solid fa-circle-exclamation"></i> Cost must be a positive number.
+              </p>
+            </div>
+
+            <!-- Expense Category -->
+            <div class="mb-4">
+              <label for="expense-category" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Category</label>
+              <div class="relative">
+                <select id="expense-category" class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all duration-200 text-sm font-semibold appearance-none">
+                  <option value="Food">Food & Dinings</option>
+                  <option value="Rent">Rent & Housing</option>
+                  <option value="Travel">Travel & Transport</option>
+                  <option value="Shopping">Shopping & Lifestyle</option>
+                  <option value="Utilities">Utilities & Bills</option>
+                  <option value="Entertainment">Entertainment</option>
+                  <option value="Other">Other Miscellaneous</option>
+                </select>
+                <div class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
+                  <i class="fa-solid fa-layer-group"></i>
+                </div>
+                <div class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+                  <i class="fa-solid fa-chevron-down text-xs"></i>
+                </div>
+              </div>
+            </div>
+
+            <!-- Expense Date -->
+            <div class="mb-6">
+              <label for="expense-date" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Expense Date</label>
+              <div class="relative">
+                <input type="date" id="expense-date" class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all duration-200 text-sm font-semibold" required>
+                <div class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
+                  <i class="fa-solid fa-calendar-days"></i>
+                </div>
+              </div>
+              <p id="expense-date-error" class="hidden text-xs text-red-500 mt-1.5 flex items-center gap-1">
+                <i class="fa-solid fa-circle-exclamation"></i> Date must be valid.
+              </p>
+            </div>
+
+            <button type="submit" class="w-full py-3 text-sm font-bold text-white bg-indigo-500 hover:bg-indigo-600 active:scale-[0.98] rounded-xl shadow-lg shadow-indigo-500/20 transition-all duration-200">
+              Add Expenditure
+            </button>
+          </form>
+        </div>
+
+      </div>
+
+      <!-- COLUMN 2: TABLE & LISTS & FILTERS (Span 5) -->
+      <div class="lg:col-span-5 flex flex-col gap-6">
+        
+        <!-- Interactive Log Panel -->
+        <div class="glass-panel rounded-2xl p-6 shadow-sm border border-slate-200/50 dark:border-slate-800/50 transition-all duration-300 flex flex-col">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+            <h3 class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <i class="fa-solid fa-list-check text-indigo-500"></i> Expenditure Logs
+            </h3>
+            
+            <!-- jsPDF Report Export Button -->
+            <button id="download-report-btn" class="self-start sm:self-auto text-xs font-bold px-3.5 py-2 rounded-xl border border-indigo-500/20 bg-indigo-500/10 text-indigo-500 dark:text-indigo-400 hover:bg-indigo-500 hover:text-white active:scale-95 transition-all duration-200 flex items-center gap-1.5">
+              <i class="fa-solid fa-file-pdf"></i> Download PDF
+            </button>
+          </div>
+
+          <!-- Filters Row: Search bar & Sort selector -->
+          <div class="flex flex-col sm:flex-row gap-4 mb-6">
+            <!-- Search bar -->
+            <div class="relative flex-grow">
+              <input type="text" id="search-input" class="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all duration-200 text-xs font-semibold" placeholder="Search expenditure...">
+              <div class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs">
+                <i class="fa-solid fa-magnifying-glass"></i>
+              </div>
+            </div>
+
+            <!-- Sort selector -->
+            <div class="relative min-w-[150px]">
+              <select id="sort-select" class="w-full pl-9 pr-8 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all duration-200 text-xs font-semibold appearance-none">
+                <option value="date-desc">Newest Date</option>
+                <option value="date-asc">Oldest Date</option>
+                <option value="amount-desc">Cost: High to Low</option>
+                <option value="amount-asc">Cost: Low to High</option>
+              </select>
+              <div class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs">
+                <i class="fa-solid fa-arrow-down-wide-short"></i>
+              </div>
+              <div class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+                <i class="fa-solid fa-chevron-down text-[10px]"></i>
+              </div>
+            </div>
+          </div>
+
+          <!-- Table Container -->
+          <div class="overflow-x-auto min-h-[300px]">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr class="border-b border-slate-200 dark:border-slate-800/80 text-slate-500 dark:text-slate-400 uppercase font-bold text-[10px]">
+                  <th class="pb-3 pr-2">Date</th>
+                  <th class="pb-3 pr-2">Category</th>
+                  <th class="pb-3 pr-2">Item</th>
+                  <th class="pb-3 pr-2 text-right">Amount</th>
+                  <th class="pb-3 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody id="expense-table-body" class="divide-y divide-slate-100 dark:divide-slate-800/50 text-slate-700 dark:text-slate-300">
+                <!-- Dynamically generated tr nodes -->
+              </tbody>
+            </table>
+            
+            <!-- Empty State element -->
+            <div id="expense-empty-state" class="flex flex-col items-center justify-center p-12 text-center">
+              <div class="h-16 w-16 rounded-full bg-slate-100 dark:bg-slate-900 flex items-center justify-center text-slate-400 mb-4">
+                <i class="fa-solid fa-clipboard text-xl"></i>
+              </div>
+              <h4 class="font-bold text-slate-700 dark:text-slate-300 text-sm mb-1">No logs found</h4>
+              <p class="text-xs text-slate-500 max-w-[200px]">Add a new expense or adjust your filters to view logs.</p>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- COLUMN 3: CHARTS & VISUALIZATIONS (Span 3) -->
+      <div class="lg:col-span-3 flex flex-col gap-6">
+        
+        <!-- Budget Allocation Chart -->
+        <div class="glass-panel rounded-2xl p-6 shadow-sm border border-slate-200/50 dark:border-slate-800/50 transition-all duration-300">
+          <h3 class="text-base font-bold text-slate-900 dark:text-white mb-1 flex items-center gap-2">
+            <i class="fa-solid fa-chart-pie text-indigo-500"></i> Budget Share
+          </h3>
+          <p class="text-[10px] text-slate-500 dark:text-slate-400 mb-6">Remaining Balance vs. Logged Expenses</p>
+          
+          <div class="relative h-48 flex items-center justify-center">
+            <canvas id="overview-chart-canvas"></canvas>
+            <div id="overview-chart-empty" class="absolute inset-0 flex items-center justify-center text-center p-4">
+              <p class="text-xs text-slate-400">Initialize salary to visualize allocation.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Category Breakdown Chart -->
+        <div class="glass-panel rounded-2xl p-6 shadow-sm border border-slate-200/50 dark:border-slate-800/50 transition-all duration-300">
+          <h3 class="text-base font-bold text-slate-900 dark:text-white mb-1 flex items-center gap-2">
+            <i class="fa-solid fa-chart-bar text-indigo-500"></i> Category Spend
+          </h3>
+          <p class="text-[10px] text-slate-500 dark:text-slate-400 mb-6">Breakdown of expenditure logs by categories</p>
+          
+          <div class="relative h-48 flex items-center justify-center">
+            <canvas id="category-chart-canvas"></canvas>
+            <div id="category-chart-empty" class="absolute inset-0 flex items-center justify-center text-center p-4">
+              <p class="text-xs text-slate-400">Log expenses to visualize categories.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- jsPDF & Chart.js CDNs -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  
+  <!-- Core Logic Script -->
+  <script src="app.js"></script>
+</body>
+</html>
