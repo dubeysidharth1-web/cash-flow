@@ -61,12 +61,23 @@
       background: radial-gradient(circle at top left, rgba(99, 102, 241, 0.15), transparent 40%),
                   radial-gradient(circle at bottom right, rgba(168, 85, 247, 0.15), transparent 40%);
     }
+    /* Snappy keyframe animations */
+    @keyframes slideIn {
+      from { transform: translateY(1rem); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    .animate-slide-in {
+      animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
   </style>
 </head>
 <body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans transition-colors duration-300 antialiased overflow-x-hidden min-h-screen main-bg pb-12">
 
+  <!-- Toast Alerts Container -->
+  <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col gap-3 max-w-sm w-full"></div>
+
   <!-- Threshold Alert Banner (Hidden by default, triggered dynamically by JS) -->
-  <div id="threshold-alert-banner" class="hidden fixed top-24 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-2xl px-6 py-4 rounded-xl border border-red-500/30 bg-red-50/90 dark:bg-red-950/85 backdrop-blur-md shadow-2xl flex items-center gap-4 animate-bounce">
+  <div id="threshold-alert-banner" class="hidden fixed top-24 left-1/2 -translate-x-1/2 z-40 w-[90%] max-w-2xl px-6 py-4 rounded-xl border border-red-500/30 bg-red-50/90 dark:bg-red-950/85 backdrop-blur-md shadow-2xl flex items-center gap-4 animate-bounce">
     <div class="h-10 w-10 rounded-full flex items-center justify-center bg-red-500/10 dark:bg-red-500/20 text-red-600 dark:text-red-400">
       <i class="fa-solid fa-triangle-exclamation text-lg"></i>
     </div>
@@ -80,7 +91,7 @@
   </div>
 
   <!-- Header / Navigation -->
-  <header class="sticky top-0 z-40 w-full border-b border-slate-200/50 dark:border-slate-800/50 bg-white/70 dark:bg-slate-950/70 backdrop-blur-md transition-all duration-300">
+  <header class="sticky top-0 z-30 w-full border-b border-slate-200/50 dark:border-slate-800/50 bg-white/70 dark:bg-slate-950/70 backdrop-blur-md transition-all duration-300">
     <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
       
       <!-- Brand Logo -->
@@ -92,7 +103,7 @@
       </a>
 
       <!-- Right Side Controls -->
-      <div class="flex items-center gap-4">
+      <div class="flex items-center gap-3">
         <!-- Currency Dropdown Selector -->
         <div class="relative">
           <select id="currency-select" class="appearance-none pl-10 pr-8 py-2 text-sm font-semibold rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all duration-200 text-slate-700 dark:text-slate-300">
@@ -113,6 +124,11 @@
           <i class="fa-solid fa-moon block dark:hidden text-lg"></i>
           <i class="fa-solid fa-sun hidden dark:block text-lg"></i>
         </button>
+
+        <!-- Reset Dashboard Button -->
+        <button id="reset-app-btn" class="h-10 w-10 rounded-xl border border-red-200 dark:border-red-950 flex items-center justify-center bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white hover:scale-105 active:scale-95 transition-all duration-300" title="Reset Dashboard" aria-label="Reset Dashboard">
+          <i class="fa-solid fa-arrow-rotate-left"></i>
+        </button>
       </div>
 
     </div>
@@ -125,7 +141,7 @@
     <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
       
       <!-- Income Stat Card -->
-      <div class="glass-panel rounded-2xl p-6 shadow-sm hover:shadow-md transition-all duration-300 relative group overflow-hidden">
+      <div id="salary-card" class="glass-panel rounded-2xl p-6 shadow-sm hover:shadow-md transition-all duration-300 relative group overflow-hidden border border-indigo-500/10">
         <div class="absolute -right-4 -bottom-4 text-indigo-500/5 text-7xl transition-transform duration-500 group-hover:scale-110">
           <i class="fa-solid fa-money-bill-trend-up"></i>
         </div>
@@ -135,14 +151,24 @@
             <i class="fa-solid fa-wallet text-sm"></i>
           </div>
         </div>
-        <div class="flex items-baseline gap-2">
+
+        <!-- Inline Editor Form Frame inside Card -->
+        <div id="salary-display-frame" class="flex items-baseline gap-2">
           <h2 id="total-salary-val" class="text-3xl font-extrabold text-slate-900 dark:text-white">0.00</h2>
           <span class="currency-label text-slate-500 font-bold text-sm">INR</span>
         </div>
+        <div id="salary-edit-frame" class="hidden flex items-center gap-2 mt-1">
+          <div class="relative flex-grow">
+            <input type="number" id="salary-inline-input" class="w-full px-3 py-1.5 text-lg font-bold rounded-lg border border-indigo-500 bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 text-slate-950 dark:text-white" min="1" step="any">
+          </div>
+          <button id="salary-save-btn" class="px-3 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors text-xs font-bold">Save</button>
+          <button id="salary-cancel-btn" class="px-3 py-2 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors text-xs font-bold">Cancel</button>
+        </div>
+
         <div class="mt-4 flex items-center justify-between">
-          <p class="text-xs text-slate-500">Source of income</p>
+          <p class="text-[10px] text-slate-400">Manage your budget limits</p>
           <button id="edit-salary-btn" class="text-xs font-bold text-indigo-500 hover:text-indigo-600 transition-colors flex items-center gap-1">
-            <i class="fa-solid fa-pen-to-square"></i> Edit
+            <i class="fa-solid fa-pen-to-square"></i> Change Income
           </button>
         </div>
       </div>
@@ -193,43 +219,20 @@
     <!-- Main Content Panels Dashboard Layout -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
       
-      <!-- COLUMN 1: LEFT SIDEBAR FOR INPUT FORMS (Span 4) -->
+      <!-- COLUMN 1: LEFT SIDEBAR FOR LOG FORMS (Span 4) -->
       <div class="lg:col-span-4 flex flex-col gap-6">
         
-        <!-- Salary Setup Form (Shown if salary not initialized) -->
-        <div id="salary-setup-panel" class="glass-panel rounded-2xl p-6 shadow-sm border border-slate-200/50 dark:border-slate-800/50 transition-all duration-300">
-          <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
-            <i class="fa-solid fa-circle-info text-indigo-500"></i> Setup Salary
-          </h3>
-          <p class="text-xs text-slate-500 dark:text-slate-400 mb-6">Initialize your monthly income to activate balance and chart calculations.</p>
-          
-          <form id="salary-form" novalidate>
-            <div class="mb-4">
-              <label for="salary-input" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Monthly Income Amount</label>
-              <div class="relative">
-                <input type="number" id="salary-input" class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all duration-200 text-sm font-semibold" placeholder="e.g. 50000" min="1" required>
-                <div class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
-                  <i class="fa-solid fa-wallet"></i>
-                </div>
-              </div>
-              <p id="salary-error" class="hidden text-xs text-red-500 mt-1.5 flex items-center gap-1">
-                <i class="fa-solid fa-circle-exclamation"></i> Income must be a positive number.
-              </p>
-            </div>
-            <button type="submit" class="w-full py-3 text-sm font-bold text-white bg-indigo-500 hover:bg-indigo-600 active:scale-[0.98] rounded-xl shadow-lg shadow-indigo-500/20 transition-all duration-200">
-              Set Income
-            </button>
-          </form>
-        </div>
-
-        <!-- Expense Input Form -->
+        <!-- Log/Edit Expense Input Form (Dynamic CRUD Header) -->
         <div class="glass-panel rounded-2xl p-6 shadow-sm border border-slate-200/50 dark:border-slate-800/50 transition-all duration-300">
-          <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
+          <h3 id="form-panel-header" class="text-lg font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
             <i class="fa-solid fa-circle-plus text-indigo-500"></i> Log Expense
           </h3>
-          <p class="text-xs text-slate-500 dark:text-slate-400 mb-6">Input individual expenditure logs. Values will scale relative to selected currencies.</p>
+          <p id="form-panel-desc" class="text-xs text-slate-500 dark:text-slate-400 mb-6">Input individual expenditure logs. Values will scale relative to selected currencies.</p>
 
           <form id="expense-form" novalidate>
+            <!-- Hidden Edit Tracker ID -->
+            <input type="hidden" id="edit-expense-id" value="">
+
             <!-- Expense Name -->
             <div class="mb-4">
               <label for="expense-name" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Expense Item Name</label>
@@ -248,7 +251,7 @@
             <div class="mb-4">
               <label for="expense-amount" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Expenditure Cost</label>
               <div class="relative">
-                <input type="number" id="expense-amount" class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all duration-200 text-sm font-semibold" placeholder="e.g. 1500" min="0.01" required>
+                <input type="number" id="expense-amount" class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all duration-200 text-sm font-semibold" placeholder="e.g. 1500" min="0.01" step="any" required>
                 <div class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
                   <i class="fa-solid fa-tag"></i>
                 </div>
@@ -263,7 +266,7 @@
               <label for="expense-category" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Category</label>
               <div class="relative">
                 <select id="expense-category" class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all duration-200 text-sm font-semibold appearance-none">
-                  <option value="Food">Food & Dinings</option>
+                  <option value="Food">Food & Dining</option>
                   <option value="Rent">Rent & Housing</option>
                   <option value="Travel">Travel & Transport</option>
                   <option value="Shopping">Shopping & Lifestyle</option>
@@ -294,9 +297,14 @@
               </p>
             </div>
 
-            <button type="submit" class="w-full py-3 text-sm font-bold text-white bg-indigo-500 hover:bg-indigo-600 active:scale-[0.98] rounded-xl shadow-lg shadow-indigo-500/20 transition-all duration-200">
-              Add Expenditure
-            </button>
+            <div class="flex gap-2">
+              <button type="submit" id="submit-expense-btn" class="flex-grow py-3 text-sm font-bold text-white bg-indigo-500 hover:bg-indigo-600 active:scale-[0.98] rounded-xl shadow-lg shadow-indigo-500/20 transition-all duration-200">
+                Add Expenditure
+              </button>
+              <button type="button" id="cancel-edit-expense-btn" class="hidden px-4 py-3 text-sm font-bold text-slate-700 dark:text-slate-300 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 rounded-xl transition-all duration-200">
+                Cancel
+              </button>
+            </div>
           </form>
         </div>
 
@@ -318,18 +326,18 @@
             </button>
           </div>
 
-          <!-- Filters Row: Search bar & Sort selector -->
-          <div class="flex flex-col sm:flex-row gap-4 mb-6">
+          <!-- Filters Row: Search bar & Sort selector & Category filter indicator -->
+          <div class="flex flex-col sm:flex-row gap-3 mb-4">
             <!-- Search bar -->
             <div class="relative flex-grow">
-              <input type="text" id="search-input" class="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all duration-200 text-xs font-semibold" placeholder="Search expenditure...">
+              <input type="text" id="search-input" class="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all duration-200 text-xs font-semibold" placeholder="Search item or category...">
               <div class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs">
                 <i class="fa-solid fa-magnifying-glass"></i>
               </div>
             </div>
 
             <!-- Sort selector -->
-            <div class="relative min-w-[150px]">
+            <div class="relative min-w-[140px]">
               <select id="sort-select" class="w-full pl-9 pr-8 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all duration-200 text-xs font-semibold appearance-none">
                 <option value="date-desc">Newest Date</option>
                 <option value="date-asc">Oldest Date</option>
@@ -343,6 +351,12 @@
                 <i class="fa-solid fa-chevron-down text-[10px]"></i>
               </div>
             </div>
+          </div>
+
+          <!-- Active Category Filter Badge Indicator -->
+          <div id="active-filter-indicator" class="hidden items-center justify-between px-3 py-2 bg-indigo-500/10 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 rounded-xl text-xs font-bold mb-4 animate-slide-in">
+            <span>Filtering by Category: <span id="filtered-cat-name" class="underline">Food</span></span>
+            <button id="clear-cat-filter-btn" class="hover:text-red-500 transition-colors">Clear Filter <i class="fa-solid fa-xmark ml-1"></i></button>
           </div>
 
           <!-- Table Container -->
@@ -389,7 +403,7 @@
           <div class="relative h-48 flex items-center justify-center">
             <canvas id="overview-chart-canvas"></canvas>
             <div id="overview-chart-empty" class="absolute inset-0 flex items-center justify-center text-center p-4">
-              <p class="text-xs text-slate-400">Initialize salary to visualize allocation.</p>
+              <p class="text-xs text-slate-400">Set monthly salary to view allocation.</p>
             </div>
           </div>
         </div>
@@ -399,7 +413,7 @@
           <h3 class="text-base font-bold text-slate-900 dark:text-white mb-1 flex items-center gap-2">
             <i class="fa-solid fa-chart-bar text-indigo-500"></i> Category Spend
           </h3>
-          <p class="text-[10px] text-slate-500 dark:text-slate-400 mb-6">Breakdown of expenditure logs by categories</p>
+          <p class="text-[10px] text-slate-500 dark:text-slate-400 mb-6">Click a slice to filter list logs below</p>
           
           <div class="relative h-48 flex items-center justify-center">
             <canvas id="category-chart-canvas"></canvas>
